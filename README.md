@@ -1,4 +1,4 @@
-Group Route Finder
+Group Route Finder (GRF)
 === === ====== ===
 
 Find an optimum path for multiple people to reach
