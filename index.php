@@ -16,7 +16,7 @@
 			var end;
 			var index = 0;
 			var nRoutes=0;
-			var responseArr=new Array();
+			var responseArr;
 			var requestArr=new Array();
 
 			function initialize() {
@@ -36,9 +36,14 @@
 			}
 			
 			function processRoutes() {
+				deleteMarkers();
 				var elem,steps=new Array(nRoutes);
 				for(var i=0; i<nRoutes; i++) {
-					elem=responseArr[i];
+					if(!directionsDisplayArr[i].directions){
+						return;
+					}
+					elem=directionsDisplayArr[i].directions;
+					responseArr[i]=directionsDisplayArr[i].directions;
 					steps[i] = elem.routes[0].legs[0].steps;
 				}
 				for(var i=0; i<nRoutes; i++){
@@ -72,7 +77,7 @@
 				}
 			}
 
-			function 	computeMeetingPoint(a, b, ab) {
+			function computeMeetingPoint(a, b, ab) {
 				var distanceAtoAB = a.distance.value;
 				var distanceBtoAB = b.distance.value;
 				var distanceAtoB = getDistance(a.start_point, b.start_point);
@@ -120,12 +125,10 @@
 					request = requestarr[i];
 					directionsDisplayArr.push(new google.maps.DirectionsRenderer({ draggable: true}));
 					directionsDisplayArr[i].setMap(map);
-							
+					directionsDisplayArr[i].addListener("directions_changed", processRoutes);
 					directionsService.route(request, function(response, status) {
 						if (status == google.maps.DirectionsStatus.OK) {
-								responseArr.push(response);
 								directionsDisplayArr[j].setDirections(response);		
-								//showSteps(response);
 								j++;
 						}
 						if(j==nRoutes) processRoutes();
@@ -169,24 +172,24 @@
 			});
 		} 
 		
-		function deleteOverlays() {
-			for(var i=0;i<nRoutes;i++){
-				directionsDisplayArr[i].setMap(null);
-				
-			}
-			
+		function deleteMarkers() {
 			for (var i=0;i<markerArr.length;i++){
 				markerArr[i].setMap(null);
 			}
 			
 			markerArr.length = 0;
+		}
+		
+		function deleteRoutes() {
+			for(var i=0;i<nRoutes;i++){
+				directionsDisplayArr[i].setMap(null);
+			}
+			
 			directionsDisplayArr.length = 0;
 		}
 		
 		function submitform() {
-			deleteOverlays();
-				
-			responseArr=new Array();
+			deleteRoutes();
 			requestArr=new Array();
 			markerArr=new Array();
 			starts=new Array();
@@ -194,6 +197,7 @@
 			
 			var inputdivs = document.getElementById("source-panel").children;
 			nRoutes=inputdivs.length;
+			responseArr=new Array(nRoutes);
 			for (i=0;i<nRoutes;i++) {
 				starts.push(inputdivs[i].children[0].value);
 			}
