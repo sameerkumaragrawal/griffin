@@ -4,8 +4,8 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 		<meta charset="utf-8">
 		<title>Group Route Finder</title>
-		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+		<link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
 		<script>
 			var directionsDisplayArr=new Array();
 			var directionsService = new google.maps.DirectionsService();
@@ -28,6 +28,11 @@
 				}
 				map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 				stepDisplay=new google.maps.InfoWindow();
+
+				inputElems = document.getElementsByTagName("input");
+				for (var i=0; i<inputElems.length; i++) {
+					new google.maps.places.Autocomplete(inputElems[i]);
+				}
 			}
 			
 			function findMeetingPoint() {
@@ -179,6 +184,7 @@
 			var newinput = document.createElement("INPUT");
 			var inputcount = document.getElementById("source-panel").childElementCount;
 			
+			new google.maps.places.Autocomplete(newinput);
 			newinput.setAttribute("type", "text");
 			newdiv.innerHTML = "Source"+(inputcount+1) + ": ";
 			newdiv.appendChild(newinput);
@@ -200,7 +206,6 @@
 				<h3>Group Route Finder</h3>
 				<div id="source-panel">
 					<div> Source1: <input type="text"> </div>
-					<div> Source2: <input type="text"> </div>
 				</div>
 				<div id="destination-panel">
 					Destination: <input type="text" name="end" id="end">
