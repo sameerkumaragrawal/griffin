@@ -108,6 +108,10 @@
 		</script>
 	</head>
 	<body>
+		<button onclick="addInput();">Add Source</button>
+		<button onclick="removeInput();">Remove Source</button>
+		<button  onclick="submitform();">Get routes</button>
+		
 		<div id="source-panel">
 			<div> Source1: <input type="text"> </div>
 			<div> Source2: <input type="text"> </div>
@@ -115,10 +119,6 @@
 		<div id="destination-panel">
 			End: <input type="text" name="end" id="end">
 		</div>
-		
-		<button onclick="addInput();">Add Source</button>
-		<button onclick="removeInput();">Remove Source</button>
-		<button  onclick="submitform();">Get routes</button>
 		
 		<div id="map-canvas" style="width: 900px; height: 400px">kk</div>
 	</body>
