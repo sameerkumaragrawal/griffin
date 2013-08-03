@@ -1,4 +1,5 @@
-GRF
-===
+Group Route Finder
+=== === ====== ===
 
-group route finder
+Find an optimum path for multiple people to reach
+the same destination from different places! :)
