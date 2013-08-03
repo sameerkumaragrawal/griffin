@@ -36,16 +36,13 @@
 				for(var i=0; i<nRoutes; i++) {
 					elem=responseArr[i];
 					steps[i] = elem.routes[0].legs[0].steps;
-					console.log(steps[i]);
 				}
 				var foundMeetingPoint=false;
 				for(var i=0;i<steps[0].length;i++){
 					for(j=0;j<steps[1].length;j++){
 						if(steps[0][i].start_point.equals(steps[1][j].start_point)){
-							addMarker(steps[0][i-1]);
-							addMarker(steps[1][j-1]);
-							addMarker(steps[1][j]);
 							foundMeetingPoint=true;
+							addMarker(computeMeetingPoint(steps[0][i-1], steps[1][j-1], steps[1][j]));
 							break;
 						}
 					}
@@ -53,6 +50,35 @@
 						break;
 					}
 				}
+			}
+
+			function 	computeMeetingPoint(a, b, ab) {
+				var distanceAtoAB = a.distance.value;
+				var distanceBtoAB = b.distance.value;
+				var distanceAtoB = getDistance(a.start_point, b.start_point);
+				var difference = 0;
+				if (distanceAtoAB > distanceBtoAB) {
+					difference = Math.abs(distanceAtoB + distanceBtoAB - distanceAtoAB);
+					if (difference  < 2000) return b;
+					else return ab;
+				}
+				else {
+					difference = Math.abs(distanceAtoB + distanceAtoAB - distanceBtoAB);
+					if (difference  < 2000) return a;
+					else return ab;
+				}
+			}
+			
+			function getDistance(point1, point2) {
+				var lat1 = point1.jb * 3.14 / 180;
+				var lon1 = point1.kb * 3.14 / 180;
+				var lat2 = point2.jb * 3.14 / 180;
+				var lon2 = point2.kb * 3.14 / 180;
+				
+				var x = (lon2-lon1) * Math.cos((lat1+lat2)/2);
+				var y = (lat2-lat1);
+				var d = Math.sqrt(x*x + y*y) * 6371000;
+				return d;
 			} 
 			
 			function getMultipleRoute() {
@@ -77,8 +103,7 @@
 					directionsService.route(request, function(response, status) {
 						if (status == google.maps.DirectionsStatus.OK) {
 								responseArr.push(response);
-								directionsDisplayArr[j].setDirections(response);
-								
+								directionsDisplayArr[j].setDirections(response);		
 								//showSteps(response);
 								j++;
 						}
