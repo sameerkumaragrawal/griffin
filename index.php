@@ -35,19 +35,34 @@
 				}
 			}
 			
-			function findMeetingPoint() {
-				var meeting;
+			function processRoutes() {
 				var elem,steps=new Array(nRoutes);
 				for(var i=0; i<nRoutes; i++) {
 					elem=responseArr[i];
 					steps[i] = elem.routes[0].legs[0].steps;
 				}
+				for(var i=0; i<nRoutes; i++){
+					for(var j=i+1; j<nRoutes; j++){
+						findMeetingPoint(steps[i], steps[j]);
+					}
+				}
+			}
+			
+			function findMeetingPoint(steps1, steps2) {
 				var foundMeetingPoint=false;
-				for(var i=0;i<steps[0].length;i++){
-					for(j=0;j<steps[1].length;j++){
-						if(steps[0][i].start_point.equals(steps[1][j].start_point)){
+				for(var i=0; i<steps1.length; i++){
+					for(j=0; j<steps2.length; j++){
+						if(steps1[i].start_point.equals(steps2[j].start_point)){
 							foundMeetingPoint=true;
-							addMarker(computeMeetingPoint(steps[0][i-1], steps[1][j-1], steps[1][j]));
+							if (i==0) {
+								addMarker(steps1[0]);
+							}
+							else if (j==0) {
+								addMarker(steps2[0]);
+							}
+							else {
+								addMarker(computeMeetingPoint(steps1[i-1], steps2[j-1], steps2[j]));
+							}
 							break;
 						}
 					}
@@ -93,6 +108,7 @@
 					requestarr.push({
 						origin:starts[i],
 						destination:end,
+						provideRouteAlternatives: true,
 						travelMode: google.maps.DirectionsTravelMode.DRIVING
 					});
 				}
@@ -102,7 +118,7 @@
 				var j=0;
 				for (var i = 0; i < nRoutes; i++) {
 					request = requestarr[i];
-					directionsDisplayArr.push(new google.maps.DirectionsRenderer());
+					directionsDisplayArr.push(new google.maps.DirectionsRenderer({ draggable: true}));
 					directionsDisplayArr[i].setMap(map);
 							
 					directionsService.route(request, function(response, status) {
@@ -112,7 +128,7 @@
 								//showSteps(response);
 								j++;
 						}
-						if(j==nRoutes) findMeetingPoint();
+						if(j==nRoutes) processRoutes();
 					});
 				}
 			}
@@ -122,8 +138,15 @@
 						position: meetStep.start_point,
 						map: map
 				});
-				attachInstructionText(marker, meetStep.instructions);
+				attachInstructionText(marker, getRoadName(meetStep.instructions));
 				markerArr.push(marker);
+			}
+			
+			function getRoadName(str) {
+				var index1 = str.lastIndexOf("<b>");
+				var index2 = str.lastIndexOf("</b>");
+				var road = str.substr(index1, index2-index1+4);
+				return road;
 			}
 			
 			function showSteps(directionResult) {
@@ -175,7 +198,6 @@
 				starts.push(inputdivs[i].children[0].value);
 			}
 			end = document.getElementById("end").value;
-			console.log(starts);
 			getMultipleRoute();
 		}
 		
