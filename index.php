@@ -4,6 +4,7 @@
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 		<meta charset="utf-8">
 		<title>Group Route Finder</title>
+		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
 		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 		<script>
 			var directionsDisplay;
@@ -36,10 +37,7 @@
 						travelMode: google.maps.DirectionsTravelMode.DRIVING
 					});
 				}
-				console.log(starts[0]);
-				console.log(starts[1]);
-				console.log(end);
-			
+				
 				var length = requestarr.length,
 				request = null;
 				directionsDisplayArr= new Array();
@@ -93,6 +91,8 @@
 			var newdiv = document.createElement("DIV");
 			var newinput = document.createElement("INPUT");
 			var inputcount = document.getElementById("source-panel").childElementCount;
+			
+			newinput.setAttribute("type", "text");
 			newdiv.innerHTML = "Source"+(inputcount+1) + ": ";
 			newdiv.appendChild(newinput);
 			document.getElementById("source-panel").appendChild(newdiv);
@@ -108,18 +108,23 @@
 		</script>
 	</head>
 	<body>
-		<button onclick="addInput();">Add Source</button>
-		<button onclick="removeInput();">Remove Source</button>
-		<button  onclick="submitform();">Get routes</button>
-		
-		<div id="source-panel">
-			<div> Source1: <input type="text"> </div>
-			<div> Source2: <input type="text"> </div>
-		</div>
-		<div id="destination-panel">
-			End: <input type="text" name="end" id="end">
-		</div>
-		
-		<div id="map-canvas" style="width: 900px; height: 400px">kk</div>
+		<div class="container">
+			<div align="center">
+				<h3>Group Route Finder</h3>
+				<div id="source-panel">
+					<div> Source1: <input type="text"> </div>
+					<div> Source2: <input type="text"> </div>
+				</div>
+				<div id="destination-panel">
+					Destination: <input type="text" name="end" id="end">
+				</div>
+				<p>
+					<button type="button" class="btn btn-primary" onclick="addInput();">Add Source</button>
+					<button type="button" class="btn btn-primary" onclick="removeInput();">Remove Source</button>
+					<button type="button" class="btn btn-success" onclick="submitform();">Get routes</button>
+				</p>
+			</div>
+			<div id="map-canvas" style="min-width: 500px; min-height: 400px;">Loading Google Map Api..</div>
+		  </div>
 	</body>
 </html>
