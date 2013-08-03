@@ -43,9 +43,17 @@
 						return;
 					}
 					elem=directionsDisplayArr[i].directions;
-					responseArr[i]=directionsDisplayArr[i].directions;
 					steps[i] = elem.routes[0].legs[0].steps;
 				}
+				
+				var inputdivs = document.getElementById("source-panel").children;
+				for (i=0;i<nRoutes;i++) {
+					responseArr[i]=directionsDisplayArr[i].directions;
+					var tValue = responseArr[i].routes[0].legs[0].start_address;
+					inputdivs[i].children[0].value=tValue;
+					starts[i]=tValue;
+				}
+				
 				for(var i=0; i<nRoutes; i++){
 					for(var j=i+1; j<nRoutes; j++){
 						findMeetingPoint(steps[i], steps[j]);
