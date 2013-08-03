@@ -20,11 +20,11 @@
 			var requestArr=new Array();
 
 			function initialize() {
-				var chicago = new google.maps.LatLng(41.850033, -87.6500523);
+				var mumbai = new google.maps.LatLng(19, 73);
 				var mapOptions = {
 					zoom:7,
 					mapTypeId: google.maps.MapTypeId.ROADMAP,
-					center: chicago
+					center: mumbai
 				}
 				map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 				stepDisplay=new google.maps.InfoWindow();
@@ -38,12 +38,19 @@
 					steps[i] = elem.routes[0].legs[0].steps;
 					console.log(steps[i]);
 				}
+				var foundMeetingPoint=false;
 				for(var i=0;i<steps[0].length;i++){
 					for(j=0;j<steps[1].length;j++){
 						if(steps[0][i].start_point.equals(steps[1][j].start_point)){
-							meeting = steps[1][j].start_point;
+							addMarker(steps[0][i-1]);
+							addMarker(steps[1][j-1]);
+							addMarker(steps[1][j]);
+							foundMeetingPoint=true;
 							break;
 						}
+					}
+					if (foundMeetingPoint) {
+						break;
 					}
 				}
 			} 
@@ -69,13 +76,24 @@
 							
 					directionsService.route(request, function(response, status) {
 						if (status == google.maps.DirectionsStatus.OK) {
+								responseArr.push(response);
 								directionsDisplayArr[j].setDirections(response);
+								
 								//showSteps(response);
 								j++;
 						}
-						if(j==length) findMeetingPoint();
+						if(j==nRoutes) findMeetingPoint();
 					});
 				}
+			}
+			
+			function addMarker(meetStep){
+				var marker = new google.maps.Marker({
+						position: meetStep.start_point,
+						map: map
+				});
+				attachInstructionText(marker, meetStep.instructions);
+				markerArr.push(marker);
 			}
 			
 			function showSteps(directionResult) {
@@ -87,7 +105,7 @@
 						map: map
 					});
 					attachInstructionText(marker, myRoute.steps[i].instructions);
-					markerArray[i] = marker;
+					markerArr.push(marker);
 					}
 			}
 
@@ -101,9 +119,13 @@
 		function deleteOverlays() {
 			for(var i=0;i<nRoutes;i++){
 				directionsDisplayArr[i].setMap(null);
-				//markerArr[i].setMap(null);
 				
 			}
+			
+			for (var i=0;i<markerArr.length;i++){
+				markerArr[i].setMap(null);
+			}
+			
 			markerArr.length = 0;
 			directionsDisplayArr.length = 0;
 		}
