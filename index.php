@@ -7,13 +7,17 @@
 		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
 		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 		<script>
-			var directionsDisplay;
+			var directionsDisplayArr=new Array();
 			var directionsService = new google.maps.DirectionsService();
 			var map;
 			var stepDisplay;
-			var markerArray = new Array();
-			var starts = new Array();
+			var markerArr=new Array();
+			var starts;
+			var end;
 			var index = 0;
+			var nRoutes=0;
+			var responseArr=new Array();
+			var requestArr=new Array();
 
 			function initialize() {
 				var chicago = new google.maps.LatLng(41.850033, -87.6500523);
@@ -23,11 +27,28 @@
 					center: chicago
 				}
 				map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+				stepDisplay=new google.maps.InfoWindow();
 			}
 			
-			function getMultipleRoute() {
-				var end = document.getElementById("end").value;
+			function findMeetingPoint() {
+				var meeting;
+				var elem,steps=new Array(nRoutes);
+				for(var i=0; i<nRoutes; i++) {
+					elem=responseArr[i];
+					steps[i] = elem.routes[0].legs[0].steps;
+					console.log(steps[i]);
+				}
+				for(var i=0;i<steps[0].length;i++){
+					for(j=0;j<steps[1].length;j++){
+						if(steps[0][i].start_point.equals(steps[1][j].start_point)){
+							meeting = steps[1][j].start_point;
+							break;
+						}
+					}
+				}
+			} 
 			
+			function getMultipleRoute() {
 				var requestarr=new Array();
 				
 				for (i=0;i<starts.length;i++) {
@@ -38,11 +59,10 @@
 					});
 				}
 				
-				var length = requestarr.length,
 				request = null;
 				directionsDisplayArr= new Array();
 				var j=0;
-				for (var i = 0; i < length; i++) {
+				for (var i = 0; i < nRoutes; i++) {
 					request = requestarr[i];
 					directionsDisplayArr.push(new google.maps.DirectionsRenderer());
 					directionsDisplayArr[i].setMap(map);
@@ -50,9 +70,10 @@
 					directionsService.route(request, function(response, status) {
 						if (status == google.maps.DirectionsStatus.OK) {
 								directionsDisplayArr[j].setDirections(response);
-								showSteps(response);
+								//showSteps(response);
 								j++;
 						}
+						if(j==length) findMeetingPoint();
 					});
 				}
 			}
@@ -77,10 +98,29 @@
 			});
 		} 
 		
+		function deleteOverlays() {
+			for(var i=0;i<nRoutes;i++){
+				directionsDisplayArr[i].setMap(null);
+				//markerArr[i].setMap(null);
+				
+			}
+			markerArr.length = 0;
+			directionsDisplayArr.length = 0;
+		}
+		
 		function submitform() {
+			deleteOverlays();
+				
+			responseArr=new Array();
+			requestArr=new Array();
+			markerArr=new Array();
+			starts=new Array();
+			directionsDisplayArr= new Array();
+			
 			var inputdivs = document.getElementById("source-panel").children;
-			for (i=0;i<inputdivs.length;i++) {
-				starts [i] = inputdivs[i].children[0].value;
+			nRoutes=inputdivs.length;
+			for (i=0;i<nRoutes;i++) {
+				starts.push(inputdivs[i].children[0].value);
 			}
 			end = document.getElementById("end").value;
 			console.log(starts);
