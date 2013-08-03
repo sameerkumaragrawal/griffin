@@ -198,6 +198,7 @@
 		
 		function submitform() {
 			deleteRoutes();
+			deleteMarkers();
 			requestArr=new Array();
 			markerArr=new Array();
 			starts=new Array();
