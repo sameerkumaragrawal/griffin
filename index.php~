@@ -49,7 +49,7 @@
 				fillCommonPoints(1,0);
 				fillCommonPoints(1,1);
 				
-				getRouteChoice();
+				//getRouteChoice();
 			
 				var elem,steps=new Array(nRoutes);
 				for(var i=0; i<nRoutes; i++) {
