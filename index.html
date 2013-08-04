@@ -12,6 +12,8 @@
 			var map;
 			var stepDisplay;
 			var markerArr=new Array();
+			var startmarker=new Array();
+			var endmarker=null;
 			var starts;
 			var end;
 			var index = 0;
@@ -66,6 +68,32 @@
 					responseArr[i].routes[0] = responseArr[i].routes[routeChoice[i]];
 					directionsDisplayArr[i].setDirections(responseArr[i]);
 				}
+				
+				var endpos = responseArr[0].routes[routeChoice[0]].legs[0].end_location;
+				endmarker = new google.maps.Marker({
+					position: endpos,
+					icon: "end2.ico",
+					map: map
+				});
+				attachInstructionText(endmarker, end);
+				
+				for(var i=0;i<nRoutes;i++){
+					var startpos = responseArr[i].routes[routeChoice[i]].legs[0].start_location;
+					startmarker[i] = new google.maps.Marker({
+						position: startpos,
+						//clickable: true,
+						draggable: true,
+						icon: "start.ico",
+						//size: new google.maps.Size(42, 68),
+						//position_changed: setMarkerFunction,
+						map: map
+					});
+					startmarker[i].addListener("dragend",setMarkerFunction);
+					attachInstructionText(startmarker[i], starts[i]);
+				}
+				
+				
+				
 			}
 			
 			function getCommonPoints(i,j,m,n) {
@@ -159,7 +187,7 @@
 				}
 			}
 
-			function 	computeMeetingPoint(a, b, ab) {
+			function computeMeetingPoint(a, b, ab) {
 				var distanceAtoAB = a.distance.value;
 				var distanceBtoAB = b.distance.value;
 				var distanceAtoB = getDistance(a.start_point, b.start_point);
@@ -205,7 +233,7 @@
 				var j=0;
 				for (var i = 0; i < nRoutes; i++) {
 					request = requestarr[i];
-					directionsDisplayArr.push(new google.maps.DirectionsRenderer({ draggable: true}));
+					directionsDisplayArr.push(new google.maps.DirectionsRenderer({ suppressMarkers: true}));
 					directionsDisplayArr[i].setMap(map);
 							
 					directionsService.route(request, function(response, status) {
@@ -220,6 +248,20 @@
 				}
 			}
 			
+			function setMarkerFunction(){
+				var inputdivs = document.getElementById("source-panel").children;
+			
+				for(var i=0;i<nRoutes;i++){
+					if(this.position.equals(startmarker[i].position)){
+						inputdivs[i].children[0].value=this.position.toString();
+						break;
+					}
+				}
+				//console.log(this);
+				//console.log(this.position);
+				//console.log(this.position.toString());
+				submitform();
+			}
 			function addMarker(meetStep){
 				var marker = new google.maps.Marker({
 						position: meetStep.start_point,
@@ -266,6 +308,15 @@
 				markerArr[i].setMap(null);
 			}
 			
+			for (var i=0;i<startmarker.length;i++){
+				startmarker[i].setMap(null);
+			}
+			
+			if(endmarker){
+				endmarker.setMap(null);
+			}
+			endmarker=null;
+			startmarker.length = 0;
 			markerArr.length = 0;
 			directionsDisplayArr.length = 0;
 		}
@@ -276,6 +327,7 @@
 			responseArr=new Array();
 			requestArr=new Array();
 			markerArr=new Array();
+			startmarker=new Array();
 			starts=new Array();
 			directionsDisplayArr= new Array();
 			
