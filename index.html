@@ -12,12 +12,16 @@
 			var map;
 			var stepDisplay;
 			var markerArr=new Array();
+			var startmarker=new Array();
+			var endmarker=null;
 			var starts;
 			var end;
 			var index = 0;
 			var nRoutes=0;
-			var responseArr;
+			var responseArr=new Array();
 			var requestArr=new Array();
+			var commonPoints00, commonPoints01, commonPoints10, commonPoints11;
+			var routeChoice;
 
 			function initialize() {
 				var mumbai = new google.maps.LatLng(19, 73);
@@ -36,27 +40,125 @@
 			}
 			
 			function processRoutes() {
-				deleteMarkers();
+				for (var i=0; i<nRoutes; i++) {
+					if (responseArr[i].routes.length < 2) {
+						responseArr[i].routes[1] = responseArr[i].routes[0];
+					}
+				}
+			
+				fillCommonPoints(0,0);
+				fillCommonPoints(0,1);
+				fillCommonPoints(1,0);
+				fillCommonPoints(1,1);
+				
+				getRouteChoice();
+			
 				var elem,steps=new Array(nRoutes);
 				for(var i=0; i<nRoutes; i++) {
-					if(!directionsDisplayArr[i].directions){
-						return;
-					}
-					elem=directionsDisplayArr[i].directions;
-					steps[i] = elem.routes[0].legs[0].steps;
+					elem=responseArr[i];
+					steps[i] = elem.routes[routeChoice[i]].legs[0].steps;
 				}
-				
-				var inputdivs = document.getElementById("source-panel").children;
-				for (i=0;i<nRoutes;i++) {
-					responseArr[i]=directionsDisplayArr[i].directions;
-					var tValue = responseArr[i].routes[0].legs[0].start_address;
-					inputdivs[i].children[0].value=tValue;
-					starts[i]=tValue;
-				}
-				
 				for(var i=0; i<nRoutes; i++){
 					for(var j=i+1; j<nRoutes; j++){
 						findMeetingPoint(steps[i], steps[j]);
+					}
+				}
+				
+				for (var i=0; i<nRoutes; i++) {
+					responseArr[i].routes[0] = responseArr[i].routes[routeChoice[i]];
+					directionsDisplayArr[i].setDirections(responseArr[i]);
+				}
+				
+				var endpos = responseArr[0].routes[routeChoice[0]].legs[0].end_location;
+				endmarker = new google.maps.Marker({
+					position: endpos,
+					icon: "end.ico",
+					map: map
+				});
+				attachInstructionText(endmarker, end);
+				
+				for(var i=0;i<nRoutes;i++){
+					var startpos = responseArr[i].routes[routeChoice[i]].legs[0].start_location;
+					startmarker[i] = new google.maps.Marker({
+						position: startpos,
+						//clickable: true,
+						draggable: true,
+						icon: "end.ico",
+						//size: new google.maps.Size(42, 68),
+						//position_changed: setMarkerFunction,
+						map: map
+					});
+					startmarker[i].addListener("dragend",setMarkerFunction);
+					attachInstructionText(startmarker[i], starts[i]);
+				}
+				
+				
+				
+			}
+			
+			function getCommonPoints(i,j,m,n) {
+				if (m==0 && n==0)  commonPoints = commonPoints00;
+				if (m==0 && n==1)  commonPoints = commonPoints01;
+				if (m==1 && n==0)  commonPoints = commonPoints10;
+				if (m==1 && n==1)  commonPoints = commonPoints11;
+				return commonPoints[i][j];
+			}
+			
+			function getRouteChoice() {
+				var maxVal=0;
+				var index=0;
+				for(var k=0; k<Math.pow(2,nRoutes); k++) {
+					var sum=0;
+					for(var i=0; i<nRoutes; i++) {
+						for(var j=0; j<nRoutes; j++) {
+							var m = (Math.floor(k/Math.pow(2,nRoutes-i-1)))%2;
+							var n =  (Math.floor(k/Math.pow(2,nRoutes-j-1)))%2;
+							if(i!=j) sum += getCommonPoints(i,j,m,n);
+						}
+					}
+					if(sum > maxVal) {
+						maxVal = sum;
+						index = k;
+					}
+				}
+				for(var i=0; i<nRoutes; i++) {
+					routeChoice[i] = (Math.floor(index/Math.pow(2,nRoutes-i-1)))%2;
+				}
+			}
+			
+			function fillCommonPoints(m, n) {
+				var commonPoints;
+				if (m==0 && n==0)  commonPoints = commonPoints00;
+				if (m==0 && n==1)  commonPoints = commonPoints01;
+				if (m==1 && n==0)  commonPoints = commonPoints10;
+				if (m==1 && n==1)  commonPoints = commonPoints11;
+				
+				var foundMeetingPoint = false;
+				for (var p=0; p<nRoutes; p++) {
+					for (var q=0; q<nRoutes; q++) {
+						foundMeetingPoint = false;
+						commonPoints[p][q] = 0;
+						var steps1 = responseArr[p].routes[m].legs[0].steps;
+						var steps2 = responseArr[q].routes[n].legs[0].steps;
+						for(var i=0; i<steps1.length; i++) {
+							for(j=0; j<steps2.length; j++) {
+								if(steps1[i].start_point.equals(steps2[j].start_point)) {
+									foundMeetingPoint=true;
+									var sum1 = 0, sum2 = 0;
+									for (var c=i; c<steps1.length; c++) {
+										sum1 += steps1[c].distance.value;
+									}
+									for (var c=j; c<steps2.length; c++) {
+										sum2 += steps2[c].distance.value;
+									}
+									commonPoints[p][q] = (Math.abs(sum1-sum2) < 2000 && p != q)? sum1: 0;
+									break;
+								}
+							}
+							if (foundMeetingPoint) {
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -92,12 +194,12 @@
 				var difference = 0;
 				if (distanceAtoAB > distanceBtoAB) {
 					difference = Math.abs(distanceAtoB + distanceBtoAB - distanceAtoAB);
-					if (difference  < 2000) return b;
+					if (difference  < 4000) return b;
 					else return ab;
 				}
 				else {
 					difference = Math.abs(distanceAtoB + distanceAtoAB - distanceBtoAB);
-					if (difference  < 2000) return a;
+					if (difference  < 4000) return a;
 					else return ab;
 				}
 			}
@@ -131,12 +233,14 @@
 				var j=0;
 				for (var i = 0; i < nRoutes; i++) {
 					request = requestarr[i];
-					directionsDisplayArr.push(new google.maps.DirectionsRenderer({ draggable: true}));
+					directionsDisplayArr.push(new google.maps.DirectionsRenderer({ suppressMarkers: true}));
 					directionsDisplayArr[i].setMap(map);
-					directionsDisplayArr[i].addListener("directions_changed", processRoutes);
+							
 					directionsService.route(request, function(response, status) {
 						if (status == google.maps.DirectionsStatus.OK) {
-								directionsDisplayArr[j].setDirections(response);		
+								responseArr.push(response);
+								//directionsDisplayArr[j].setDirections(response);
+								//showSteps(response);
 								j++;
 						}
 						if(j==nRoutes) processRoutes();
@@ -144,6 +248,20 @@
 				}
 			}
 			
+			function setMarkerFunction(){
+				var inputdivs = document.getElementById("source-panel").children;
+			
+				for(var i=0;i<nRoutes;i++){
+					if(this.position.equals(startmarker[i].position)){
+						inputdivs[i].children[0].value=this.position.toString();
+						break;
+					}
+				}
+				//console.log(this);
+				//console.log(this.position);
+				//console.log(this.position.toString());
+				submitform();
+			}
 			function addMarker(meetStep){
 				var marker = new google.maps.Marker({
 						position: meetStep.start_point,
@@ -180,37 +298,57 @@
 			});
 		} 
 		
-		function deleteMarkers() {
+		function deleteOverlays() {
+			for(var i=0;i<nRoutes;i++){
+				directionsDisplayArr[i].setMap(null);
+				
+			}
+			
 			for (var i=0;i<markerArr.length;i++){
 				markerArr[i].setMap(null);
 			}
 			
-			markerArr.length = 0;
-		}
-		
-		function deleteRoutes() {
-			for(var i=0;i<nRoutes;i++){
-				directionsDisplayArr[i].setMap(null);
+			for (var i=0;i<startmarker.length;i++){
+				startmarker[i].setMap(null);
 			}
 			
+			if(endmarker){
+				endmarker.setMap(null);
+			}
+			endmarker=null;
+			startmarker.length = 0;
+			markerArr.length = 0;
 			directionsDisplayArr.length = 0;
 		}
 		
 		function submitform() {
-			deleteRoutes();
-			deleteMarkers();
+			deleteOverlays();
+				
+			responseArr=new Array();
 			requestArr=new Array();
 			markerArr=new Array();
+			startmarker=new Array();
 			starts=new Array();
 			directionsDisplayArr= new Array();
 			
 			var inputdivs = document.getElementById("source-panel").children;
 			nRoutes=inputdivs.length;
-			responseArr=new Array(nRoutes);
 			for (i=0;i<nRoutes;i++) {
 				starts.push(inputdivs[i].children[0].value);
 			}
 			end = document.getElementById("end").value;
+			routeChoice = new Array(nRoutes);
+			commonPoints00 = new Array(nRoutes);
+			commonPoints01 = new Array(nRoutes);
+			commonPoints10 = new Array(nRoutes);
+			commonPoints11 = new Array(nRoutes);
+			for(var i=0; i<nRoutes; i++) {
+				commonPoints00[i] = new Array(nRoutes);
+				commonPoints01[i] = new Array(nRoutes);
+				commonPoints10[i] = new Array(nRoutes);
+				commonPoints11[i] = new Array(nRoutes);
+				routeChoice[i] = 0;
+			}
 			getMultipleRoute();
 		}
 		
@@ -237,8 +375,8 @@
 	</head>
 	<body>
 		<div class="container">
-			<div align="center">
-				<h3>Group Route Finder</h3>
+			<h2 align="center">Group Route Finder</h2>
+			<div style="float: left; width: 20%; margin-right: 40px;">
 				<div id="source-panel">
 					<div> Source1: <input type="text"> </div>
 				</div>
@@ -248,10 +386,12 @@
 				<p>
 					<button type="button" class="btn btn-primary" onclick="addInput();">Add Source</button>
 					<button type="button" class="btn btn-primary" onclick="removeInput();">Remove Source</button>
-					<button type="button" class="btn btn-success" onclick="submitform();">Get routes</button>
+				</p>
+				<p>
+					<button type="button" style="width:100%" class="btn btn-success" onclick="submitform();">Get routes</button>
 				</p>
 			</div>
-			<div id="map-canvas" style="min-width: 500px; min-height: 400px;">Loading Google Map Api..</div>
+			<div id="map-canvas" style="min-width: 400px; min-height: 600px;">Loading Google Map Api..</div>
 		  </div>
 	</body>
 </html>
