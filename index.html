@@ -13,15 +13,22 @@
 
 	<body>
 		<div class="container">
-			<div style="margin-top: 10px; margin-bottom: 50px; width: 100%" align="center">
+			<div style="margin-left: 100px; width: 100%">
 				<img src="griffin.jpg" width="200" height="100"></img>
-				<div style="display: inline-block; vertical-align:middle;">
+				<div style="display: inline-block; vertical-align:middle; text-align: center;">
 					<h1 style="font-size: 60px">GRifFIN</h1>
-					<h5 style="font-size: 20px; border-top: solid 1px; padding-top: 10px">Group Route FINder</h5>
+					<h5 style="text-align: center; font-size: 20px; border-top: solid 1px; padding-top: 10px">Group Route FINder</h5>
+					<button class="btn btn-info">About</button>
+					<button class="btn btn-info">Credits</button>
 				</div>
 			</div>
 			<hr/>
 			<div id="left-pane" class="span3" style="margin-left: 0">
+				<p>
+					<button type="button" class="btn btn-primary" onclick="addInput();">Add Source</button>
+					<button type="button" class="btn btn-primary" onclick="removeInput();">Remove Source</button>
+				</p>
+
 				<div id="source-panel" style="margin-bottom: 10px">
 					<div>
 						<label>Source1:</label>
@@ -38,11 +45,6 @@
 					<label>Destination:</label>
 					<input type="text" class="location-input" id="end" />
 				</div>
-
-				<p>
-					<button type="button" class="btn btn-primary" onclick="addInput();">Add Source</button>
-					<button type="button" class="btn btn-primary" onclick="removeInput();">Remove Source</button>
-				</p>
 
 				<button type="button" class="span2 btn btn-success" onclick="submitform();">Get routes</button>
 				

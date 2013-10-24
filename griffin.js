@@ -1,5 +1,6 @@
 var directionsDisplayArr=new Array();
 	var directionsService = new google.maps.DirectionsService();
+	var optimize = true;
 	var map;
 	var stepDisplay;
 	var markerArr=new Array();
@@ -30,6 +31,11 @@ var directionsDisplayArr=new Array();
 			new google.maps.places.Autocomplete(inputElems[i]);
 		}
 	}
+
+	function toggleOptimize() {
+		optimize = !optimize;
+		submitform();
+	}
 	
 	function processRoutes() {
 		for (var i=0; i<nRoutes; i++) {
@@ -43,7 +49,9 @@ var directionsDisplayArr=new Array();
 		fillCommonPoints(1,0);
 		fillCommonPoints(1,1);
 		
-		getRouteChoice();
+		if (optimize) {
+			getRouteChoice();
+		}
 	
 		var elem,steps=new Array(nRoutes);
 		for(var i=0; i<nRoutes; i++) {
@@ -75,11 +83,8 @@ var directionsDisplayArr=new Array();
 			var startpos = responseArr[i].routes[routeChoice[i]].legs[0].start_location;
 			startmarker[i] = new google.maps.Marker({
 				position: startpos,
-				//clickable: true,
 				draggable: true,
 				icon: "start.ico",
-				//size: new google.maps.Size(42, 68),
-				//position_changed: setMarkerFunction,
 				map: map
 			});
 			startmarker[i].addListener("dragend",setMarkerFunction);
